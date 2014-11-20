@@ -10,28 +10,12 @@ namespace libvdrskinservice {
 
   class cPluginSkinDisplayMenu : public cSkinDisplayMenu {
   public:
+    cPluginSkinDisplayMenu(void) {};
+    virtual ~cPluginSkinDisplayMenu(void) {};
+
     virtual void SetPluginMenu(const char *PluginName, int MenuId, int Type, bool init) = 0;
-    virtual bool SetItemPlugin(const cKeyValueList<cString> *StringValues, const cKeyValueList<int> *IntValues, const cKeyValueList< cList< cKeyValueList<cString> > > *LoopValues, int Index, bool Current, bool Selectable) { return false; };
+    virtual bool SetItemValues(const cKeyValueList<cString> *StringValues, const cKeyValueList<int> *IntValues, const cKeyValueList< cList< cKeyValueList<cString> > > *LoopValues, int Index, bool Current, bool Selectable) { return false; };
     virtual bool SetMenuValues(const cKeyValueList<cString> *StringValues, const cKeyValueList<int> *IntValues, const cKeyValueList< cList< cKeyValueList<cString> > > *LoopValues) = 0;
-  };
-
-
-  class cPluginSkin : public cSkin {
-  private:
-    static cVector<cPluginSkin*> pluginSkins;
-    cPluginSkinDisplayMenu *currentDisplayMenu;
-
-  protected:
-    // override this instead of DisplayMenu
-    virtual cPluginSkinDisplayMenu *OnDisplayMenu(void) = 0;
-
-  public:
-    cPluginSkin(const char *Name, cTheme *Theme = NULL);
-    virtual ~cPluginSkin(void);
-
-    virtual cSkinDisplayMenu *DisplayMenu(void);
-
-    static cPluginSkinDisplayMenu *CurrentDisplayMenu(void);
   };
 
 
