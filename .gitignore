@@ -1,0 +1,4 @@
+libvdrskinservice.pc
+libvdrskinservice.so*
+*.d
+*.o
