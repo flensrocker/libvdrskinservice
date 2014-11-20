@@ -131,9 +131,8 @@ void libvdrskinservice::cPluginSkinOsdMenu::Display(void)
 
 // --- cPluginSkinOsdItem ----------------------------------------------------
 
-libvdrskinservice::cPluginSkinOsdItem::cPluginSkinOsdItem(cPluginSkinDisplayMenu *Menu, eOSState State)
+libvdrskinservice::cPluginSkinOsdItem::cPluginSkinOsdItem(eOSState State)
  : cOsdItem(State)
- , menu(Menu)
 {
 }
 
@@ -143,6 +142,7 @@ libvdrskinservice::cPluginSkinOsdItem::~cPluginSkinOsdItem(void)
 
 void libvdrskinservice::cPluginSkinOsdItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable)
 {
-  if ((menu == NULL) || !menu->SetItemPlugin(stringValues, intValues, loopValues, Index, Current, Selectable))
+  cPluginSkinDisplayMenu *displayMenu = cPluginSkin::CurrentDisplayMenu();
+  if ((displayMenu == NULL) || !displayMenu->SetItemPlugin(stringValues, intValues, loopValues, Index, Current, Selectable))
      DisplayMenu->SetItem(Text(), Index, Current, Selectable);
 }

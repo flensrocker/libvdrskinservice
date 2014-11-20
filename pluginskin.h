@@ -116,11 +116,8 @@ namespace libvdrskinservice {
 
 
   class cPluginSkinOsdItem : public cOsdItem, public cTokenStore {
-  private:
-    cPluginSkinDisplayMenu *menu;
-
   public:
-    cPluginSkinOsdItem(cPluginSkinDisplayMenu *Menu, eOSState State = osUnknown);
+    cPluginSkinOsdItem(eOSState State = osUnknown);
     virtual ~cPluginSkinOsdItem(void);
 
     virtual void SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable);
