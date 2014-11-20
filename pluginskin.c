@@ -26,7 +26,7 @@ void libvdrskinservice::cPluginSkinOsdMenu::Display(void)
      cSkinDisplayMenu *displayMenu = DisplayMenu();
      cPluginSkinDisplayMenu *dm = dynamic_cast<cPluginSkinDisplayMenu*>(displayMenu);
 
-     if ((dm == NULL) || !dm->SetMenuValues(stringValues, intValues, loopValues)) {
+     if ((dm == NULL) || !dm->SetTextValues(stringValues, intValues, loopValues)) {
         displayMenu->Clear();
         displayMenu->SetText(*text, false);
         }

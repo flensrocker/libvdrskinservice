@@ -15,7 +15,7 @@ namespace libvdrskinservice {
 
     virtual void SetPluginMenu(const char *PluginName, int MenuId, int Type, bool init) = 0;
     virtual bool SetItemValues(const cKeyValueList<cString> *StringValues, const cKeyValueList<int> *IntValues, const cKeyValueList< cList< cKeyValueList<cString> > > *LoopValues, int Index, bool Current, bool Selectable) { return false; };
-    virtual bool SetMenuValues(const cKeyValueList<cString> *StringValues, const cKeyValueList<int> *IntValues, const cKeyValueList< cList< cKeyValueList<cString> > > *LoopValues) = 0;
+    virtual bool SetTextValues(const cKeyValueList<cString> *StringValues, const cKeyValueList<int> *IntValues, const cKeyValueList< cList< cKeyValueList<cString> > > *LoopValues) = 0;
   };
 
 
