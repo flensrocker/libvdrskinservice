@@ -37,7 +37,7 @@ $(TARGET_LIB): $(OBJS)
 	$(CXX) ${LDFLAGS} -o $@ $^
  
 $(SRCS:.c=.d):%.d:%.c
-	$(CXX) $(CXXFLAGS) -MM $< >$@
+	$(CXX) $(CXXFLAGS) -MM $< > $@
 
 .PHONY: $(LIBNAME).pc
 $(LIBNAME).pc:
