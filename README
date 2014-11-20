@@ -1,0 +1,80 @@
+This is a library for plugins for the Video Disk Recorder (VDR).
+
+Written by:                  Lars Hanisch <dvb@flensrocker.de>
+
+Project's homepage:          https://github.com/flensrocker/libvdrskinservice
+
+Latest version:              https://github.com/flensrocker/libvdrskinservice/releases
+
+GIT repository:              https://github.com/flensrocker/libvdrskinservice.git
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+See the file COPYING for more information.
+
+Description
+-----------
+
+The purpose of this library is to implement a communication framework
+between skin-plugins and plugins, which want to display various information
+(called "info-plugins" in this document).
+
+Skin-plugins should derive their cSkinDisplayMenu class from cPluginSkinDisplayMenu
+and implement the  virtual methods SetPluginMenu, SetItemValues and SetTextValues.
+
+Info-plugins should use cPluginSkinOsdItem instead of cOsdItems, because each
+cPluginSkinOsdItem is also a cKeyValueContainer, which can store three different
+kinds of key-value-lists: one for strings, one for integer and one for "loop values"
+(see below). The key of these lists is always of the type string.
+
+Additionally they should use cPluginSkinOsdMenu as the base class for their menus
+instead of cOsdMenu. The cPluginSkinOsdMenu is also a cKeyValueContainer.
+
+The cPluginSkinOsdItem will transfer the values from its key-value-lists to the
+cPluginSkinDisplayMenu via the SetItemValues method. Like the methods SetItemEvent,
+SetItemRecording, SetItemTimer and SetItemChannel of vdr's cSkinDisplayMenu the
+derived class in the skin-plugin can use these values to get full control about the
+representation of the information, the info-plugin is offering.
+
+The info-plugin can use SetPluginMenu of cPluginSkinOsdMenu to set a menu id and a type
+of the currently displayed menu. Possible values of the type are mtList and mtText.
+Default is mtList, which means, the cPluginSkinOsdMenu is supposed to be filled with
+cOsdItems or cPluginSkinOsdItem resp.
+If mtText is set, the cPluginSkinOsdMenu calls SetTextValues with the key-value-lists
+stored in the cPluginSkinOsdMenu.
+
+With the help of this id and type, the skin-plugin can select the kind of layout for
+the information it can find in the key-value-lists. Think of them like vdr's eMenuCategory
+type.
+
+Key-Value lists
+---------------
+The key-value-lists are simple, double-linked lists of key-value-pairs. The type of the
+key is always a string, the type of the value can be set via a template parameter.
+The values have always to be created on the heap and the list will take care of deleting
+them. For now the lists do not prevent to add the same key multiple times, but this may
+change in the future. Also the "Find" method of the list only returns the first key-
+value-pair with the given key, but you can iterate the list on your own with the methods
+of vdr's class cList as usual.
+
+The cKeyValueContainer contains three kinds of lists for strings, integers and "loop values".
+Strings and integers. The loop values are a special container inspired by the plugin
+"skindesigner". The values of this list are lists of key-value-lists with a value type of string.
+Don't worry, it sounds worse than it is... :)
+
+Loop values
+-----------
+Some skins show lists of menu independent informations like the active timers or the receiving
+devices and their tuned channels etc. This kind of information should be placed inside the
+loop-value-lists.
+Skindesigner stores the information about the devices in the following way:
+Each device has several properties like "type", "hascam", "signalstrength", "channel", "istuned"
+and so on. These properties are stored in a key-value-list with a value type of string. As keys
+the following pattern is used: "devices[property]", e.g. "devices[type]", "devices[hascam]".
+The lists of all devices are concatenated to a list, which is stored with the key "devices" in
+the loop values. The data of the active timers are stored with the prefix "timers".
+Whatever an info-plugin can offer in lists, which are not the menuitems, should be stored in
+the loop values. Of course the skin has to know the keys/prefix, but these can be derived
+from the plugin's name and its menu id (see above).
