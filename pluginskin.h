@@ -4,60 +4,9 @@
 #include <vdr/osdbase.h>
 #include <vdr/skins.h>
 
+#include "keyvaluelist.h"
+
 namespace libvdrskinservice {
-
-  template<class T> class cKeyValuePair : public cListObject {
-    private:
-      cString  key;
-      T  *value;
-
-    public:
-      cKeyValuePair(const char *Key, T *Value) {
-        key = Key;
-        value = Value;
-        }
-
-      virtual ~cKeyValuePair(void) { delete value; }
-
-      virtual int Compare(const cListObject &ListObject) const
-      {
-        cKeyValuePair* kv = (cKeyValuePair*)&ListObject;
-        return strcmp(*key, *(kv->key));
-      }
-
-      const char *Key(void) { return *key; }
-      T &Value(void) const { return *value; }
-  };
-
-
-  template<class T> class cKeyValueList : public cListObject, public cList< cKeyValuePair<T> > {
-    public:
-      cKeyValuePair<T> *Find(const char *Key) {
-        for (cKeyValuePair<T> *kv = this->cList< cKeyValuePair<T> >::First(); kv; kv = this->cList< cKeyValuePair<T> >::Next(kv)) {
-            if (strcmp(Key, kv->Key()) == 0)
-               return kv;
-            }
-        return NULL;
-        }
-  };
-
-
-  class cTokenStore {
-  protected:
-    cKeyValueList<cString> *stringValues;
-    cKeyValueList<int> *intValues;
-    cKeyValueList< cList< cKeyValueList<cString> > > *loopValues;
-
-  public:
-    cTokenStore(void);
-    virtual ~cTokenStore(void);
-
-    void ClearTokens(void);
-    void AddStringToken(const char *Key, cString *Value); // Value must be instantiated with new
-    void AddIntToken(const char *Key, int Value);
-    void AddLoopToken(const char *LoopName, cKeyValueList<cString> *Tokens); // Value must be instantiated with new
-  };
-
 
   class cPluginSkinDisplayMenu : public cSkinDisplayMenu {
   public:
@@ -92,7 +41,7 @@ namespace libvdrskinservice {
   };
 
 
-  class cPluginSkinOsdMenu : public cOsdMenu, protected cTokenStore {
+  class cPluginSkinOsdMenu : public cOsdMenu, protected cKeyValueContainer {
   private:
     bool init;
     cString pluginName;
@@ -115,7 +64,7 @@ namespace libvdrskinservice {
   };
 
 
-  class cPluginSkinOsdItem : public cOsdItem, public cTokenStore {
+  class cPluginSkinOsdItem : public cOsdItem, public cKeyValueContainer {
   public:
     cPluginSkinOsdItem(eOSState State = osUnknown);
     virtual ~cPluginSkinOsdItem(void);

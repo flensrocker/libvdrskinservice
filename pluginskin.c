@@ -1,59 +1,5 @@
 #include "pluginskin.h"
 
-
-// --- cTokenStore -----------------------------------------------------------
-
-libvdrskinservice::cTokenStore::cTokenStore(void)
- : stringValues(NULL)
- , intValues(NULL)
- , loopValues(NULL)
-{
-}
-
-libvdrskinservice::cTokenStore::~cTokenStore(void)
-{
-  ClearTokens();
-}
-
-void libvdrskinservice::cTokenStore::ClearTokens(void)
-{
-  delete stringValues;
-  stringValues = NULL;
-  delete intValues;
-  intValues = NULL;
-  delete loopValues;
-  loopValues = NULL;
-}
-
-void libvdrskinservice::cTokenStore::AddStringToken(const char *Key, cString *Value)
-{
-  if (stringValues == NULL)
-     stringValues = new cKeyValueList<cString>();
-
-  stringValues->Add(new cKeyValuePair<cString>(Key, Value));
-}
-
-void libvdrskinservice::cTokenStore::AddIntToken(const char *Key, int Value)
-{
-  if (intValues == NULL)
-     intValues = new cKeyValueList<int>();
-
-  intValues->Add(new cKeyValuePair<int>(Key, new int(Value)));
-}
-
-void libvdrskinservice::cTokenStore::AddLoopToken(const char *LoopName, cKeyValueList<cString> *Tokens)
-{
-  if (loopValues == NULL)
-     loopValues = new cKeyValueList< cList< cKeyValueList<cString> > >();
-
-  cKeyValuePair< cList< cKeyValueList<cString> > > *loop = loopValues->Find(LoopName);
-  if (loop == NULL) {
-     loop = new cKeyValuePair< cList< cKeyValueList<cString> > >(LoopName, new cList< cKeyValueList<cString> >());
-     loopValues->Add(loop);
-     }
-  loop->Value().Add(Tokens);
-}
-
 // --- cPluginSkin -----------------------------------------------------------
 
 cVector<libvdrskinservice::cPluginSkin*> libvdrskinservice::cPluginSkin::pluginSkins;
