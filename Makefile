@@ -33,11 +33,21 @@ all: ${TARGET_LIB} ${LIBNAME}.pc
 %.o: %.c
 	$(CXX) $(CXXFLAGS) -c $(DEFINES) $(INCLUDES) -o $@ $<
 
+# Dependencies:
+
+MAKEDEP = $(CXX) -MM -MG
+DEPFILE = .dependencies
+$(DEPFILE): Makefile
+	@$(MAKEDEP) $(DEFINES) $(INCLUDES) $(OBJS:%.o=%.c) > $@
+
+-include $(DEPFILE)
+
+# The main lib
+
 $(TARGET_LIB): $(OBJS)
 	$(CXX) ${LDFLAGS} -o $@ $^
- 
-$(SRCS:.c=.d):%.d:%.c
-	$(CXX) $(CXXFLAGS) -MM $< > $@
+
+# pkg-config
 
 .PHONY: $(LIBNAME).pc
 $(LIBNAME).pc:
@@ -49,8 +59,8 @@ $(LIBNAME).pc:
 	@echo "Version: $(VERSION)" >> $@
 	@echo "Cflags: -I$(INCDIR)" >> $@
 	@echo "Libs: -L$(LIBDIR) -l$(NAME)" >> $@
- 
--include $(SRCS:.c=.d)
+
+# install targets
 
 install-lib: $(TARGET_LIB)
 	install -D $^ $(DESTDIR)$(LIBDIR)/$^
@@ -69,9 +79,11 @@ install-pc: $(LIBNAME).pc
 
 install: install-lib install-pc install-includes
 
+# clean & dist
+
 .PHONY: clean
 clean:
-	-rm -f ${TARGET_LIB} ${OBJS} $(SRCS:.c=.d) $(LIBNAME).pc $(LIBNAME).so $(ARCHIVE).tgz
+	-rm -f ${TARGET_LIB} ${OBJS} $(DEPFILE) $(LIBNAME).pc $(LIBNAME).so $(ARCHIVE).tgz
 
 dist: clean
 	@-rm -rf $(TMPDIR)/$(ARCHIVE)

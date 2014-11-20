@@ -1,4 +1,4 @@
 libvdrskinservice.pc
 libvdrskinservice.so*
-*.d
+.dependencies
 *.o
