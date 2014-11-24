@@ -26,7 +26,7 @@ void libvdrskinservice::cPluginSkinOsdMenu::Display(void)
      cSkinDisplayMenu *displayMenu = DisplayMenu();
      cPluginSkinDisplayMenu *dm = dynamic_cast<cPluginSkinDisplayMenu*>(displayMenu);
 
-     if ((dm == NULL) || !dm->SetTextValues(stringValues, intValues, loopValues)) {
+     if ((dm == NULL) || !dm->SetTextValues(*this)) {
         displayMenu->Clear();
         displayMenu->SetText(*text, false);
         }
@@ -50,6 +50,6 @@ libvdrskinservice::cPluginSkinOsdItem::~cPluginSkinOsdItem(void)
 void libvdrskinservice::cPluginSkinOsdItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable)
 {
   cPluginSkinDisplayMenu *dm = dynamic_cast<cPluginSkinDisplayMenu*>(DisplayMenu);
-  if ((dm == NULL) || !dm->SetItemValues(stringValues, intValues, loopValues, Index, Current, Selectable))
+  if ((dm == NULL) || !dm->SetItemValues(*this, Index, Current, Selectable))
      DisplayMenu->SetItem(Text(), Index, Current, Selectable);
 }
