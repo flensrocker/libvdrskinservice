@@ -26,6 +26,11 @@ namespace libvdrskinservice {
 
       const char *Key(void) { return *key; }
       T &Value(void) const { return *value; }
+
+      void SetValue(T *Value) {
+        delete value;
+        value = Value;
+        }
   };
 
 
@@ -37,6 +42,23 @@ namespace libvdrskinservice {
                return kv;
             }
         return NULL;
+        }
+
+      void AddKeyValue(const char *Key, T *Value) {
+        cKeyValuePair<T> *item = Find(Key);
+        if (item == NULL)
+           this->Add(new cKeyValuePair<T>(Key, Value));
+        else
+           item->SetValue(Value);
+        }
+
+      bool DelKeyValue(const char *Key) {
+        cKeyValuePair<T> *item = Find(Key);
+        if (item != NULL) {
+           this->Del(item);
+           return true;
+           }
+        return false;
         }
   };
 
@@ -52,10 +74,19 @@ namespace libvdrskinservice {
     virtual ~cKeyValueContainer(void);
 
     void Clear(void);
+
     void AddString(const char *Key, cString *Value); // Value must be instantiated with new
     void AddString(const char *Key, const char *Value);
     void AddInt(const char *Key, int Value);
-    void AddLoop(const char *LoopName, cKeyValueList<cString> *LoopValues); // Value must be instantiated with new
+    void AddLoopValues(const char *LoopName, cKeyValueList<cString> *LoopValues); // LoopValues must be instantiated with new
+
+    const char *GetString(const char *Key) const;
+    int GetInt(const char *Key) const;
+    const cList< cKeyValueList<cString> > *GetLoopValues(const char *LoopName) const;
+
+    bool DelString(const char *Key);
+    bool DelInt(const char *Key);
+    bool DelLoopValues(const char *LoopName);
   };
 
 }
