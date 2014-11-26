@@ -4,38 +4,26 @@ using namespace libvdrskinservice;
 
 // --- cSchedulesLock --------------------------------------------------------
 
-cKeyValueContainerLock::cKeyValueContainerLock(const cKeyValueContainer& Container, eListType ListType)
+cKeyValueContainerLock::cKeyValueContainerLock(const cKeyValueContainer& Container)
  : container(Container)
- , listType(ListType)
 {
-  switch (listType) {
-    case ltString:
-      locked = container.stringLock.Lock(false);
-      break;
-    case ltInt:
-      locked = container.intLock.Lock(false);
-      break;
-    case ltLoopValues:
-      locked = container.loopLock.Lock(false);
-      break;
-    }
+  locked = container.valuesLock.Lock(false);
 }
 
 cKeyValueContainerLock::~cKeyValueContainerLock()
 {
-  if (locked) {
-     switch (listType) {
-       case ltString:
-         container.stringLock.Unlock();
-         break;
-       case ltInt:
-         container.intLock.Unlock();
-         break;
-       case ltLoopValues:
-         container.loopLock.Unlock();
-         break;
-       }
-     }
+  if (locked)
+     container.valuesLock.Unlock();
+}
+
+bool cKeyValueContainerLock::Locked(void) const
+{
+  return locked;
+}
+
+bool cKeyValueContainerLock::IsForContainer(const cKeyValueContainer *Container) const
+{
+  return Container == &container;
 }
 
 // --- cKeyValueContainer ----------------------------------------------------
@@ -46,69 +34,65 @@ cKeyValueContainer::cKeyValueContainer(void)
 
 cKeyValueContainer::~cKeyValueContainer(void)
 {
-  if (changeLock.Lock(true)) {
-     IValueChanged *ch;
-     while ((ch = changeHandlers.First()) != NULL)
-           changeHandlers.Del(ch, false);
-     changeLock.Unlock();
-     }
 }
 
-bool cKeyValueContainer::AddChangeHandler(IValueChanged *ChangeHandler)
+bool cKeyValueContainer::AddStringChangeHandler(IValueChanged<cString> *Handler)
 {
-  if (changeLock.Lock(true)) {
-     changeHandlers.Add(ChangeHandler);
-     changeLock.Unlock();
-     return true;
-     }
-  return false;
+  return stringValues.AddHandler(Handler);
 }
 
-bool cKeyValueContainer::DelChangeHandler(IValueChanged *ChangeHandler)
+bool cKeyValueContainer::DelStringChangeHandler(IValueChanged<cString> *Handler)
 {
-  if (changeLock.Lock(true)) {
-     changeHandlers.Del(ChangeHandler, false);
-     changeLock.Unlock();
-     return true;
-     }
-  return false;
+  return stringValues.DelHandler(Handler);
 }
 
-void cKeyValueContainer::CallChangeHandlers(eListType ListType, const char *Key, bool Deleted)
+bool cKeyValueContainer::AddIntChangeHandler(IValueChanged<int> *Handler)
 {
-  if (changeLock.Lock(false)) {
-     IValueChanged *ch;
-     for (ch = changeHandlers.First(); ch; ch = changeHandlers.Next(ch))
-         ch->OnValueChanged(ListType, Key, Deleted);
-     changeLock.Unlock();
-     }
+  return intValues.AddHandler(Handler);
+}
+
+bool cKeyValueContainer::DelIntChangeHandler(IValueChanged<int> *Handler)
+{
+  return intValues.DelHandler(Handler);
+}
+
+bool cKeyValueContainer::AddLoopChangeHandler(IValueChanged< cList< cKeyValueList<cString> > > *Handler)
+{
+  return loopValues.AddHandler(Handler);
+}
+
+bool cKeyValueContainer::DelLoopChangeHandler(IValueChanged< cList< cKeyValueList<cString> > > *Handler)
+{
+  return loopValues.DelHandler(Handler);
 }
 
 void cKeyValueContainer::Clear(void)
 {
-  if (stringLock.Lock(true)) {
+  if (valuesLock.Lock(true)) {
+     bool callString = stringValues.Count() > 0;
+     bool callInt = intValues.Count() > 0;
+     bool callLoop = loopValues.Count() > 0;
+
      stringValues.Clear();
-     CallChangeHandlers(ltString, NULL, true);
-     stringLock.Unlock();
-     }
-  if (intLock.Lock(true)) {
      intValues.Clear();
-     CallChangeHandlers(ltInt, NULL, true);
-     intLock.Unlock();
-     }
-  if (loopLock.Lock(true)) {
      loopValues.Clear();
-     CallChangeHandlers(ltLoopValues, NULL, true);
-     loopLock.Unlock();
+
+     if (callString)
+        stringValues.CallHandler(NULL, NULL, true);
+     if (callInt)
+        intValues.CallHandler(NULL, NULL, true);
+     if (callLoop)
+        loopValues.CallHandler(NULL, NULL, true);
+
+     valuesLock.Unlock();
      }
 }
 
 void cKeyValueContainer::AddString(const char *Key, cString *Value)
 {
-  if (stringLock.Lock(true)) {
+  if (valuesLock.Lock(true)) {
      stringValues.AddKeyValue(Key, Value);
-     CallChangeHandlers(ltString, Key, false);
-     stringLock.Unlock();
+     valuesLock.Unlock();
      }
 }
 
@@ -119,30 +103,32 @@ void cKeyValueContainer::AddString(const char *Key, const char *Value)
 
 void cKeyValueContainer::AddInt(const char *Key, int Value)
 {
-  if (intLock.Lock(true)) {
+  if (valuesLock.Lock(true)) {
      intValues.AddKeyValue(Key, new int(Value));
-     CallChangeHandlers(ltInt, Key, false);
-     intLock.Unlock();
+     valuesLock.Unlock();
      }
 }
 
 void cKeyValueContainer::AddLoopValues(const char *LoopName, cKeyValueList<cString> *LoopValues)
 {
-  if (loopLock.Lock(true)) {
+  if (valuesLock.Lock(true)) {
      cKeyValuePair< cList< cKeyValueList<cString> > > *loop = loopValues.Find(LoopName);
      if (loop == NULL) {
-        loop = new cKeyValuePair< cList< cKeyValueList<cString> > >(LoopName, new cList< cKeyValueList<cString> >());
-        loopValues.Add(loop);
+        cList< cKeyValueList<cString> > *list = new cList< cKeyValueList<cString> >();
+        list->Add(LoopValues);
+        loopValues.AddKeyValue(LoopName, list);
         }
-     loop->Value().Add(LoopValues);
-     CallChangeHandlers(ltLoopValues, LoopName, false);
-     loopLock.Unlock();
+     else {
+        loop->Value().Add(LoopValues);
+        loopValues.CallHandler(LoopName, &(loop->Value()), false);
+        }
+     valuesLock.Unlock();
      }
 }
 
 const char *cKeyValueContainer::GetString(cKeyValueContainerLock& Lock, const char *Key) const
 {
-  if (!Lock.Locked())
+  if (!Lock.Locked() || !Lock.IsForContainer(this))
      return NULL;
 
   cKeyValuePair<cString> *item = stringValues.Find(Key);
@@ -153,7 +139,7 @@ const char *cKeyValueContainer::GetString(cKeyValueContainerLock& Lock, const ch
 
 int cKeyValueContainer::GetInt(cKeyValueContainerLock& Lock, const char *Key) const
 {
-  if (!Lock.Locked())
+  if (!Lock.Locked() || !Lock.IsForContainer(this))
      return 0;
 
   cKeyValuePair<int> *item = intValues.Find(Key);
@@ -164,7 +150,7 @@ int cKeyValueContainer::GetInt(cKeyValueContainerLock& Lock, const char *Key) co
 
 const cList< cKeyValueList<cString> > *cKeyValueContainer::GetLoopValues(cKeyValueContainerLock& Lock, const char *Key) const
 {
-  if (!Lock.Locked())
+  if (!Lock.Locked() || !Lock.IsForContainer(this))
      return NULL;
 
   cKeyValuePair< cList< cKeyValueList<cString> > > *item = loopValues.Find(Key);
@@ -175,11 +161,9 @@ const cList< cKeyValueList<cString> > *cKeyValueContainer::GetLoopValues(cKeyVal
 
 bool cKeyValueContainer::DelString(const char *Key)
 {
-  if (stringLock.Lock(true)) {
+  if (valuesLock.Lock(true)) {
      bool ret = stringValues.DelKeyValue(Key);
-     if (ret)
-        CallChangeHandlers(ltString, Key, true);
-     stringLock.Unlock();
+     valuesLock.Unlock();
      return ret;
   }
   return false;
@@ -187,11 +171,9 @@ bool cKeyValueContainer::DelString(const char *Key)
 
 bool cKeyValueContainer::DelInt(const char *Key)
 {
-  if (intLock.Lock(true)) {
+  if (valuesLock.Lock(true)) {
      bool ret = intValues.DelKeyValue(Key);
-     if (ret)
-        CallChangeHandlers(ltInt, Key, true);
-     intLock.Unlock();
+     valuesLock.Unlock();
      return ret;
      }
   return false;
@@ -199,11 +181,9 @@ bool cKeyValueContainer::DelInt(const char *Key)
 
 bool cKeyValueContainer::DelLoopValues(const char *LoopName)
 {
-  if (loopLock.Lock(true)) {
+  if (valuesLock.Lock(true)) {
      bool ret = loopValues.DelKeyValue(LoopName);
-     if (ret)
-        CallChangeHandlers(ltLoopValues, LoopName, true);
-     loopLock.Unlock();
+     valuesLock.Unlock();
      return ret;
      }
   return false;
