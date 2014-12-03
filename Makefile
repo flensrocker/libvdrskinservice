@@ -21,7 +21,7 @@ ARCHIVE = $(LIBNAME)-$(VERSION)
 CXXFLAGS = $(shell pkg-config --variable=cxxflags vdr)
 LDFLAGS = -shared -Wl,-soname,$(SONAME)
 
-DEFINES +=
+DEFINES += -DAPIVERSION=$(MAJOR) -DLIBVERSION=\"$(VERSION)\"
 INCLUDES +=
  
 SRCS = $(wildcard *.c)
