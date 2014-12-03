@@ -66,7 +66,7 @@ bool cKeyValueContainer::DelLoopChangeHandler(IValueChanged< cList< cKeyValueLis
   return loopValues.DelHandler(Handler);
 }
 
-void cKeyValueContainer::Clear(void)
+void cKeyValueContainer::ClearValues(void)
 {
   if (valuesLock.Lock(true)) {
      bool callString = stringValues.Count() > 0;

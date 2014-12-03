@@ -103,7 +103,7 @@ namespace libvdrskinservice {
     cKeyValueContainer(void);
     virtual ~cKeyValueContainer(void);
 
-    void Clear(void);
+    void ClearValues(void);
 
     bool AddStringChangeHandler(IValueChanged<cString> *Handler);
     bool DelStringChangeHandler(IValueChanged<cString> *Handler);
