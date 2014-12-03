@@ -1,5 +1,29 @@
 #include "pluginskin.h"
 
+// --- cPluginSkinDisplayMenu ------------------------------------------------
+
+libvdrskinservice::cPluginSkinDisplayMenu::cPluginSkinDisplayMenu(void)
+{
+}
+
+libvdrskinservice::cPluginSkinDisplayMenu::~cPluginSkinDisplayMenu(void)
+{
+}
+
+void libvdrskinservice::cPluginSkinDisplayMenu::SetPluginMenu(const char *PluginName, int MenuId, int Type, bool init)
+{
+}
+
+bool libvdrskinservice::cPluginSkinDisplayMenu::SetItemValues(const cKeyValueContainer &Values, int Index, bool Current, bool Selectable)
+{
+  return false;
+}
+
+bool libvdrskinservice::cPluginSkinDisplayMenu::SetTextValues(const cKeyValueContainer &Values)
+{
+  return false;
+}
+
 // --- cPluginSkinOsdMenu ----------------------------------------------------
 
 libvdrskinservice::cPluginSkinOsdMenu::cPluginSkinOsdMenu(const char *PluginName, const char *Title, int c0, int c1, int c2, int c3, int c4)
@@ -9,6 +33,25 @@ libvdrskinservice::cPluginSkinOsdMenu::cPluginSkinOsdMenu(const char *PluginName
  , type(mtList)
  , text("")
 {
+}
+
+libvdrskinservice::cPluginSkinOsdMenu::~cPluginSkinOsdMenu(void)
+{
+}
+
+bool libvdrskinservice::cPluginSkinOsdMenu::Init(void) const
+{
+  return init;
+}
+
+const char *libvdrskinservice::cPluginSkinOsdMenu::PluginName(void) const
+{
+  return *pluginName;
+}
+
+libvdrskinservice::eMenuType libvdrskinservice::cPluginSkinOsdMenu::MenuType(void) const
+{
+  return type;
 }
 
 void libvdrskinservice::cPluginSkinOsdMenu::SetPluginMenu(int MenuId, eMenuType Type)
@@ -34,6 +77,11 @@ void libvdrskinservice::cPluginSkinOsdMenu::Display(void)
      }
   else
      cOsdMenu::Display();
+}
+
+void libvdrskinservice::cPluginSkinOsdMenu::SetText(const char *Text)
+{
+  text = Text;
 }
 
 // --- cPluginSkinOsdItem ----------------------------------------------------
