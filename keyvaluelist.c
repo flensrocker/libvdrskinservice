@@ -7,18 +7,18 @@ using namespace libvdrskinservice;
 cKeyValueContainerLock::cKeyValueContainerLock(const cKeyValueContainer& Container)
  : container(Container)
 {
-  locked = container.valuesLock.Lock(false);
+  isLocked = container.valuesLock.Lock(false);
 }
 
 cKeyValueContainerLock::~cKeyValueContainerLock()
 {
-  if (locked)
+  if (isLocked)
      container.valuesLock.Unlock();
 }
 
-bool cKeyValueContainerLock::Locked(void) const
+bool cKeyValueContainerLock::IsLocked(void) const
 {
-  return locked;
+  return isLocked;
 }
 
 bool cKeyValueContainerLock::IsForContainer(const cKeyValueContainer *Container) const
@@ -128,7 +128,7 @@ void cKeyValueContainer::AddLoopValues(const char *LoopName, cKeyValueList<cStri
 
 const char *cKeyValueContainer::GetString(cKeyValueContainerLock& Lock, const char *Key) const
 {
-  if (!Lock.Locked() || !Lock.IsForContainer(this))
+  if (!Lock.IsLocked() || !Lock.IsForContainer(this))
      return NULL;
 
   cKeyValuePair<cString> *item = stringValues.Find(Key);
@@ -139,7 +139,7 @@ const char *cKeyValueContainer::GetString(cKeyValueContainerLock& Lock, const ch
 
 int cKeyValueContainer::GetInt(cKeyValueContainerLock& Lock, const char *Key) const
 {
-  if (!Lock.Locked() || !Lock.IsForContainer(this))
+  if (!Lock.IsLocked() || !Lock.IsForContainer(this))
      return 0;
 
   cKeyValuePair<int> *item = intValues.Find(Key);
@@ -150,7 +150,7 @@ int cKeyValueContainer::GetInt(cKeyValueContainerLock& Lock, const char *Key) co
 
 const cList< cKeyValueList<cString> > *cKeyValueContainer::GetLoopValues(cKeyValueContainerLock& Lock, const char *Key) const
 {
-  if (!Lock.Locked() || !Lock.IsForContainer(this))
+  if (!Lock.IsLocked() || !Lock.IsForContainer(this))
      return NULL;
 
   cKeyValuePair< cList< cKeyValueList<cString> > > *item = loopValues.Find(Key);
@@ -187,4 +187,45 @@ bool cKeyValueContainer::DelLoopValues(const char *LoopName)
      return ret;
      }
   return false;
+}
+
+// --- cKeyValueContainer ----------------------------------------------------
+
+cMutex cGlobalContainers::mutex;
+cKeyValueList<cKeyValueContainer> cGlobalContainers::containers;
+
+cKeyValueContainer *cGlobalContainers::Create(const char *Name)
+{
+  if ((Name == NULL) || (*Name == 0))
+     return NULL;
+
+  cMutexLock lock(&mutex);
+  cKeyValuePair<cKeyValueContainer> *kv = containers.Find(Name);
+  // first come, first serves
+  if (kv != NULL)
+     return NULL;
+
+  cKeyValueContainer *c = new cKeyValueContainer();
+  containers.AddKeyValue(Name, c);
+  return c;
+}
+
+const cKeyValueContainer *cGlobalContainers::Get(const char *Name, IValueChanged<cString> *StringHandler, IValueChanged<int> *IntHandler, IValueChanged< cList< cKeyValueList<cString> > > *LoopHandler)
+{
+  if ((Name == NULL) || (*Name == 0))
+     return NULL;
+
+  cMutexLock lock(&mutex);
+  cKeyValuePair<cKeyValueContainer> *kv = containers.Find(Name);
+  if (kv == NULL)
+     return NULL;
+
+  cKeyValueContainer &c = kv->Value();
+  if (StringHandler != NULL)
+     c.AddStringChangeHandler(StringHandler);
+  if (IntHandler != NULL)
+     c.AddIntChangeHandler(IntHandler);
+  if (LoopHandler != NULL)
+     c.AddLoopChangeHandler(LoopHandler);
+  return &c;
 }

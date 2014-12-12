@@ -78,13 +78,13 @@ namespace libvdrskinservice {
   class cKeyValueContainerLock {
   private:
     const cKeyValueContainer& container;
-    bool locked;
+    bool isLocked;
 
   public:
     cKeyValueContainerLock(const cKeyValueContainer& Container);
     ~cKeyValueContainerLock(void);
 
-    bool Locked(void) const;
+    bool IsLocked(void) const;
     bool IsForContainer(const cKeyValueContainer *Container) const;
   };
 
@@ -130,6 +130,21 @@ namespace libvdrskinservice {
     bool DelString(const char *Key);
     bool DelInt(const char *Key);
     bool DelLoopValues(const char *LoopName);
+  };
+
+
+  class cGlobalContainers {
+  private:
+    static cMutex mutex;
+    static cKeyValueList<cKeyValueContainer> containers;
+
+  public:
+    // Returns NULL if a container with the same name already exists.
+    // Don't delete it!
+    static cKeyValueContainer *Create(const char *Name);
+    // Returns NULL if a container with the given name does not exist.
+    // Don't delete it!
+    static const cKeyValueContainer *Get(const char *Name, IValueChanged<cString> *StringHandler, IValueChanged<int> *IntHandler, IValueChanged< cList< cKeyValueList<cString> > > *LoopHandler);
   };
 
 }
