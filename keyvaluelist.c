@@ -189,7 +189,7 @@ bool cKeyValueContainer::DelLoopValues(const char *LoopName)
   return false;
 }
 
-// --- cKeyValueContainer ----------------------------------------------------
+// --- cGlobalContainers -----------------------------------------------------
 
 cMutex cGlobalContainers::mutex;
 cKeyValueList<cKeyValueContainer> cGlobalContainers::containers;
