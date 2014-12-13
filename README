@@ -79,6 +79,14 @@ Whatever an info-plugin can offer in lists, which are not the menuitems, should 
 the loop values. Of course the skin has to know the keys/prefix, but these can be derived
 from the plugin's name and its menu id (see above).
 
+Value Change Handlers
+---------------------
+The key-value-container offers a possibility to register an object derived from IValueChanged.
+Whenever a value changes, get's added or deleted, the "OnValueChanged" method of the IValueChanged
+objects are called. Since this call is in the context of the thread, which is modifying the
+container, you must take care to update whatever depends on these values. And don't update the
+container in a "OnValueChanged" call, you may end in an endless loop...
+
 Global containers
 -----------------
 If a plugin wants to provide data independent of an OSD menu, it can create a global container with
